@@ -237,22 +237,7 @@
   .draw-back-hint{ font-family:'Caveat',cursive; font-size:1.05rem; color:var(--ink-soft); margin-top:12px; }
 
 
-  .reply-back{
-    margin-top:22px; padding-top:20px; border-top:2px dashed var(--kraft-mid);
-  }
-  .reply-back h3{ font-size:1.1rem; margin-bottom:2px; }
-  #replyText{
-    width:100%; max-width:360px; min-height:120px; display:block; margin:0 auto;
-    background:#fff; border:2px dashed var(--kraft-mid); border-radius:8px; padding:12px 14px;
-    font-family:'Kalam',cursive; font-size:.95rem; color:var(--ink); resize:vertical;
-  }
-  .reply-actions{ display:flex; gap:8px; justify-content:center; margin-top:12px; flex-wrap:wrap; }
-  .reply-actions button{
-    font-family:'Kalam',cursive; font-size:.8rem; border:2px solid var(--kraft-mid); background:transparent;
-    color:var(--ink); padding:7px 14px; border-radius:999px; cursor:pointer;
-  }
-  .reply-actions button:hover{ background:var(--kraft); }
-  .reply-hint{ font-family:'Caveat',cursive; font-size:1.05rem; color:var(--ink-soft); margin-top:12px; }
+  .response-card{ opacity:1; animation:none; transform:rotate(.6deg); margin-top:34px; }
 
   /* =========================================================
      MODAL
@@ -389,7 +374,9 @@
     <h2>that's everything, for now</h2>
     <p id="finaleNote">more to come. miss you.</p>
     <button class="replay" id="replayBtn">wrap it back up</button>
+  </div>
 
+  <div class="finale response-card" id="responseCard">
     <div class="draw-back">
       <h3>now it's your turn 🌸</h3>
       <p class="draw-back-sub">draw me something back</p>
@@ -402,20 +389,9 @@
       <div class="draw-back-actions">
         <button id="backUndo" type="button">undo</button>
         <button id="backClear" type="button">clear</button>
-        <button id="backSave" type="button">save my drawing</button>
+        
       </div>
-      <p class="draw-back-hint" id="backHint">save it, then send it back to me however you like 💌</p>
-
-      <div class="reply-back">
-        <h3>and leave me a little note ✉️</h3>
-        <p class="draw-back-sub">he can type a reply too</p>
-        <textarea id="replyText" placeholder="write something sweet back..."></textarea>
-        <div class="reply-actions">
-          <button id="replyCopy" type="button">copy reply</button>
-          <button id="replySave" type="button">save reply</button>
-        </div>
-        <p class="reply-hint" id="replyHint">he can write a note, then copy or save it and send it back to you 💌</p>
-      </div>
+      <p class="draw-back-hint" id="backHint">snap a pic of your drawing and text it back to me 💌</p>
     </div>
   </div>
   <p class="credit-line" id="creditLine"></p>
@@ -863,41 +839,7 @@ document.getElementById('replayBtn').addEventListener('click', ()=>{
   });
   document.getElementById('backUndo').addEventListener('click', ()=>{ strokes.pop(); redraw(); });
   document.getElementById('backClear').addEventListener('click', ()=>{ strokes = []; redraw(); });
-  document.getElementById('backSave').addEventListener('click', ()=>{
-    if(strokes.length === 0){ alert('draw something first!'); return; }
-    const link = document.createElement('a');
-    link.download = 'a-flower-for-you.png';
-    link.href = canvas.toDataURL('image/png');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    document.getElementById('backHint').textContent = "saved! now text or airdrop it back to me 💌";
-  });
 
-  document.getElementById('replyCopy').addEventListener('click', async ()=>{
-    const text = document.getElementById('replyText').value.trim();
-    if(!text){ alert('write a reply first!'); return; }
-    try{
-      await navigator.clipboard.writeText(text);
-      document.getElementById('replyHint').textContent = 'copied! now he can paste it into a text and send it to you 💌';
-    }catch(e){
-      document.getElementById('replyHint').textContent = 'copy did not work automatically — he can still select the text and copy it manually 💌';
-    }
-  });
-
-  document.getElementById('replySave').addEventListener('click', ()=>{
-    const text = document.getElementById('replyText').value.trim();
-    if(!text){ alert('write a reply first!'); return; }
-    const blob = new Blob([text], {type:'text/plain'});
-    const link = document.createElement('a');
-    link.download = 'a-note-for-you.txt';
-    link.href = URL.createObjectURL(blob);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
-    document.getElementById('replyHint').textContent = 'saved! now he can send the note back to you 💌';
-  });
 })();
 </script>
 </body>
