@@ -25,6 +25,8 @@
     --butter:#FFCE54;
     --sky:#7FC4D9;
     --sky-deep:#4FA0B8;
+    --violet:#9B7FD4;
+    --violet-deep:#7457B5;
     --ink:#4A3728;
     --ink-soft:#8A705A;
     --shadow: rgba(122,87,52,.28);
@@ -248,6 +250,11 @@
 
   .video-frame{ position:relative; width:100%; padding-top:56.25%; background:#1c1c1c; border-radius:8px; overflow:hidden; }
   .video-frame iframe, .video-frame video{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+  .video-badge{
+    position:absolute; top:10px; left:10px; z-index:5; background:var(--butter); color:var(--ink);
+    font-family:'Kalam',cursive; font-weight:700; font-size:.85rem; padding:5px 12px; border-radius:4px;
+    transform:rotate(-3deg); box-shadow:0 3px 6px rgba(0,0,0,.25);
+  }
 
   .postcard{ border:2px dashed var(--sky-deep); border-radius:10px; padding:18px; background:linear-gradient(180deg,#fff,#F4FBFD); }
   .postcard .pin{ width:30px; height:30px; margin-bottom:8px; }
@@ -256,6 +263,16 @@
     text-decoration:none; padding:9px 16px; border-radius:999px; font-family:'Kalam',cursive; font-size:.85rem;
   }
   .maps-btn:hover{ background:var(--sky); }
+
+  .song-card{ text-align:center; padding:18px; background:linear-gradient(180deg,#FFF9EE,#FFF3D9); border-radius:10px; }
+  .vinyl{
+    width:90px; height:90px; border-radius:50%; margin:0 auto;
+    background:repeating-radial-gradient(circle at center, #3a3a3a 0 3px, #2a2a2a 3px 6px);
+    display:flex; align-items:center; justify-content:center;
+    animation:spin 4s linear infinite; box-shadow:0 6px 14px rgba(0,0,0,.25);
+  }
+  .vinyl-hole{ width:16px; height:16px; border-radius:50%; background:var(--butter); }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
 
   .doodle-box{ text-align:center; }
   .doodle-box svg{ width:100%; max-width:340px; height:auto; }
@@ -270,6 +287,18 @@
   /* confetti */
   .confetti{ position:fixed; top:-20px; width:9px; height:14px; z-index:200; pointer-events:none; }
 
+  .music-pill{
+    position:fixed; top:16px; left:16px; z-index:50; background:var(--paper); border:2px solid var(--kraft-mid);
+    border-radius:999px; padding:8px 16px; font-family:'Kalam',cursive; font-size:.85rem; color:var(--ink);
+    cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.08);
+  }
+  .music-pill:hover{ background:var(--kraft); }
+
+  .credit-line{
+    text-align:center; margin-top:44px; font-family:'Caveat',cursive; font-size:1.05rem;
+    color:var(--ink-soft); opacity:.85;
+  }
+
   @media (max-width:520px){
     .box{ width:220px; height:190px; }
     .box-front{ top:48px; }
@@ -278,6 +307,9 @@
 </style>
 </head>
 <body>
+
+<button class="music-pill" id="musicToggle" hidden>🎵 pause music</button>
+<div id="musicMount" style="position:fixed; width:1px; height:1px; opacity:0; pointer-events:none; overflow:hidden;"></div>
 
 <div class="floaties" aria-hidden="true">
   <svg width="26" height="26" style="top:8%;left:6%" viewBox="0 0 24 24"><path d="M12 21s-7-4.6-9.3-9C1.1 8.6 2.7 5 6.4 5c2 0 3.4 1.2 4.1 2.4C11.2 6.2 12.6 5 14.6 5c3.7 0 5.3 3.6 3.7 7-2.3 4.4-9.3 9-9.3 9z" fill="#FF7FA6"/></svg>
@@ -316,6 +348,7 @@
     <p id="finaleNote">more to come. love you.</p>
     <button class="replay" id="replayBtn">wrap it back up</button>
   </div>
+  <p class="credit-line" id="creditLine"></p>
 </div>
 
 <div class="modal-overlay" id="overlay" hidden>
@@ -358,6 +391,12 @@ const PARCEL = {
   from: "Varuni",
   openingLine: "someone left you a little package...",
   finaleNote: "more to come. love you.",
+  bgMusic: {
+    youtubeId: "wX_kaM6S9ZM",
+    playlistId: "PLE43207F6E0F47654",
+    index: 3,
+    credit: "PS the piece is Mikhail Sokolovsky – The Miller-Wizard, Trickster and Match-Maker – Overture"
+  },
   items: [
     {
       type: 'note',
@@ -366,15 +405,28 @@ const PARCEL = {
     },
     {
       type: 'photo',
-      title: "One of my favorites",
-      caption: "the day this was taken",
-      src: ""
+      title: "You, being you",
+      caption: "thumbs up, obviously",
+      src: "photo1.jpg"
+    },
+    {
+      type: 'photo',
+      title: "The real main character",
+      caption: "unbothered as always",
+      src: "photo2.jpg"
+    },
+    {
+      type: 'photo',
+      title: "Us",
+      caption: "at the museum, being silly",
+      src: "photo3.jpg"
     },
     {
       type: 'video',
-      title: "Watch this",
-      caption: "made you something",
-      src: ""
+      title: "Welcome to Baltimore",
+      badge: "Welcome to Baltimore",
+      caption: "🎆",
+      src: "fireworks.mp4"
     },
     {
       type: 'location',
@@ -385,8 +437,8 @@ const PARCEL = {
     {
       type: 'drawing',
       title: "I drew you this",
-      caption: "very professional artist, I know",
-      doodle: "heart"
+      caption: "violets, for you",
+      doodle: "potted_violets"
     },
     {
       type: 'note',
@@ -408,10 +460,11 @@ const ICONS = {
   photo: `<svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="2"/><circle cx="9" cy="11" r="2.2"/><path d="M21 17l-5-5-4 4-3-3-6 6"/></svg>`,
   video: `<svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5l5 2.5-5 2.5z" fill="var(--ink)" stroke="none"/></svg>`,
   location: `<svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.6 7-12a7 7 0 10-14 0c0 5.4 7 12 7 12z"/><circle cx="12" cy="9" r="2.3"/></svg>`,
-  drawing: `<svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l4-1 11-11-3-3L4 17z"/><path d="M14 6l3 3"/></svg>`
+  drawing: `<svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l4-1 11-11-3-3L4 17z"/><path d="M14 6l3 3"/></svg>`,
+  song: `<svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>`
 };
-const TAPE_COLORS = { note:'var(--butter)', photo:'var(--pink)', video:'var(--sky)', location:'var(--mint)', drawing:'var(--pink-deep)' };
-const KIND_LABEL = { note:'a note', photo:'a photo', video:'a video', location:'a place', drawing:'a doodle' };
+const TAPE_COLORS = { note:'var(--butter)', photo:'var(--pink)', video:'var(--sky)', location:'var(--mint)', drawing:'var(--pink-deep)', song:'var(--butter)' };
+const KIND_LABEL = { note:'a note', photo:'a photo', video:'a video', location:'a place', drawing:'a doodle', song:'a song' };
 
 const opened = new Set();
 const cardsEl = document.getElementById('cards');
@@ -488,9 +541,10 @@ function openItem(item, i, cardEl){
     let player = `<div class="placeholder">🎬<br>add a video — set the "src" field to a YouTube link or .mp4 URL</div>`;
     if(item.src){
       const yt = youTubeEmbed(item.src);
+      const badge = item.badge ? `<div class="video-badge">${item.badge}</div>` : '';
       player = yt
-        ? `<div class="video-frame"><iframe src="${yt}" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>`
-        : `<div class="video-frame"><video src="${item.src}" controls></video></div>`;
+        ? `<div class="video-frame">${badge}<iframe src="${yt}" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>`
+        : `<div class="video-frame">${badge}<video src="${item.src}" controls></video></div>`;
     }
     body = `<div class="kind">${KIND_LABEL.video}</div><h2>${item.title||''}</h2>
       ${player}<p style="margin-top:10px;font-family:'Caveat',cursive;font-size:1.15rem;color:var(--ink-soft);">${item.caption||''}</p>`;
@@ -502,6 +556,17 @@ function openItem(item, i, cardEl){
         <p style="font-family:'Caveat',cursive;font-size:1.2rem;">${item.caption||''}</p>
         <a class="maps-btn" href="${item.mapUrl||'#'}" target="_blank" rel="noopener">open in maps →</a>
       </div>`;
+  }
+  else if(item.type === 'song'){
+    let player = `<div class="placeholder">🎵<br>add a song — set the "src" field to an audio file (.mp3) URL</div>`;
+    if(item.src){
+      player = `<div class="song-card">
+        <div class="vinyl"><div class="vinyl-hole"></div></div>
+        <audio src="${item.src}" controls style="width:100%;margin-top:14px;"></audio>
+      </div>`;
+    }
+    body = `<div class="kind">${KIND_LABEL.song}</div><h2>${item.title||''}</h2>
+      ${player}<p style="margin-top:10px;font-family:'Caveat',cursive;font-size:1.15rem;color:var(--ink-soft);">${item.caption||''}</p>`;
   }
   else if(item.type === 'drawing'){
     body = `<div class="kind">${KIND_LABEL.drawing}</div><h2>${item.title||''}</h2>
@@ -545,6 +610,23 @@ function doodleSVG(kind){
         <path d="M150 60l6 16 17 2-13 12 4 17-14-9-14 9 4-17-13-12 17-2z"/>
         <path d="M100 110l5 13 14 2-10 10 3 14-12-8-12 8 3-14-10-10 14-2z"/>
       </g>
+    </svg>`,
+    potted_violets: `<svg viewBox="0 0 200 180" fill="none">
+      <g id="dpath" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M60 170l-14-60h88l-14 60z" stroke="var(--kraft-dark)"/>
+        <path d="M50 110h100" stroke="var(--kraft-dark)"/>
+        <path d="M100 110V70" stroke="var(--mint-deep)"/>
+        <path d="M100 95c-14-6-22-2-26 8" stroke="var(--mint-deep)"/>
+        <path d="M100 85c14-6 22-2 26 8" stroke="var(--mint-deep)"/>
+        <path d="M75 60c0-10 8-16 15-14-1 9-6 15-15 14z" stroke="var(--violet)"/>
+        <path d="M100 46c8-6 18-4 20 4-8 5-16 4-20-4z" stroke="var(--violet)"/>
+        <path d="M110 60c0-10 8-16 15-14-1 9-6 15-15 14z" stroke="var(--violet)"/>
+        <circle cx="97" cy="55" r="4" stroke="var(--butter)"/>
+        <path d="M55 65c0-9 7-14 13-12-1 8-5 13-13 12z" stroke="var(--violet-deep)"/>
+        <circle cx="61" cy="60" r="3.5" stroke="var(--butter)"/>
+        <path d="M130 68c0-9 7-14 13-12-1 8-5 13-13 12z" stroke="var(--violet-deep)"/>
+        <circle cx="136" cy="63" r="3.5" stroke="var(--butter)"/>
+      </g>
     </svg>`
   };
   return doodles[kind] || doodles.heart;
@@ -581,11 +663,47 @@ const styleTag = document.createElement('style');
 styleTag.textContent = `@keyframes fall{to{ transform:translateY(100vh) rotate(360deg); opacity:.3; }}`;
 document.head.appendChild(styleTag);
 
+/* ---------- background music ---------- */
+document.getElementById('creditLine').textContent = PARCEL.bgMusic ? PARCEL.bgMusic.credit : '';
+let musicPlayer = null, musicPlaying = false;
+
+function startMusic(){
+  const cfg = PARCEL.bgMusic;
+  if(!cfg || !cfg.youtubeId || musicPlayer) return;
+  const mount = document.getElementById('musicMount');
+  const params = new URLSearchParams({
+    autoplay: '1', controls: '0', playsinline: '1', enablejsapi: '1'
+  });
+  if(cfg.playlistId) params.set('list', cfg.playlistId);
+  if(cfg.index) params.set('index', cfg.index);
+  const iframe = document.createElement('iframe');
+  iframe.allow = 'autoplay; encrypted-media';
+  iframe.src = `https://www.youtube.com/embed/${cfg.youtubeId}?${params.toString()}`;
+  mount.appendChild(iframe);
+  musicPlayer = iframe;
+  musicPlaying = true;
+  const btn = document.getElementById('musicToggle');
+  btn.hidden = false;
+  btn.textContent = '🎵 pause music';
+}
+
+function postToPlayer(func){
+  if(!musicPlayer || !musicPlayer.contentWindow) return;
+  musicPlayer.contentWindow.postMessage(JSON.stringify({event:'command', func, args:[]}), '*');
+}
+
+document.getElementById('musicToggle').addEventListener('click', ()=>{
+  musicPlaying = !musicPlaying;
+  postToPlayer(musicPlaying ? 'playVideo' : 'pauseVideo');
+  document.getElementById('musicToggle').textContent = musicPlaying ? '🎵 pause music' : '🔇 play music';
+});
+
 /* ---------- box open interaction ---------- */
 document.getElementById('boxWrap').addEventListener('click', openBox);
 function openBox(){
   const box = document.getElementById('box');
   box.classList.add('open');
+  startMusic();
   setTimeout(()=>{
     stageEl.classList.add('hidden-stage');
     boardEl.classList.add('show');
