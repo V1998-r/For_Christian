@@ -214,6 +214,28 @@
   }
   .replay:hover{ background:var(--kraft); border-color:var(--kraft);}
 
+  .draw-back{
+    margin-top:26px; padding-top:22px; border-top:2px dashed var(--kraft-mid);
+  }
+  .draw-back h3{ font-size:1.1rem; margin-bottom:2px; }
+  .draw-back-sub{ font-family:'Kalam',cursive; color:var(--ink-soft); font-size:.9rem; margin:0 0 10px; }
+  .draw-back-colors{ display:flex; justify-content:center; gap:8px; margin-bottom:10px; }
+  .dbswatch{ width:22px; height:22px; border-radius:50%; cursor:pointer; border:2px solid transparent; box-shadow:0 2px 4px rgba(0,0,0,.15); }
+  .dbswatch.active{ border-color:var(--ink); transform:scale(1.12); }
+  #backCanvas{
+    width:100%; max-width:360px; aspect-ratio:4/3; background:#fff; border-radius:8px;
+    border:2px dashed var(--kraft-mid); touch-action:none; cursor:crosshair; display:block; margin:0 auto;
+  }
+  .draw-back-actions{ display:flex; gap:8px; justify-content:center; margin-top:12px; flex-wrap:wrap; }
+  .draw-back-actions button{
+    font-family:'Kalam',cursive; font-size:.8rem; border:2px solid var(--kraft-mid); background:transparent;
+    color:var(--ink); padding:7px 14px; border-radius:999px; cursor:pointer;
+  }
+  .draw-back-actions button:hover{ background:var(--kraft); }
+  #backSave{ background:var(--violet, #7457B5); color:white; border-color:transparent; }
+  #backSave:hover{ opacity:.9; background:var(--violet, #7457B5); }
+  .draw-back-hint{ font-family:'Caveat',cursive; font-size:1.05rem; color:var(--ink-soft); margin-top:12px; }
+
   /* =========================================================
      MODAL
      ========================================================= */
@@ -299,6 +321,7 @@
     text-align:center; margin-top:44px; font-family:'Caveat',cursive; font-size:1.05rem;
     color:var(--ink-soft); opacity:.85;
   }
+  .credit-pop{ color:var(--pink-deep); font-weight:700; }
 
   @media (max-width:520px){
     .box{ width:220px; height:190px; }
@@ -348,6 +371,23 @@
     <h2>that's everything, for now</h2>
     <p id="finaleNote">more to come. miss you.</p>
     <button class="replay" id="replayBtn">wrap it back up</button>
+
+    <div class="draw-back">
+      <h3>now it's your turn 🌸</h3>
+      <p class="draw-back-sub">draw me one flower back</p>
+      <div class="draw-back-colors">
+        <div class="dbswatch active" style="background:#7457B5" data-color="#7457B5"></div>
+        <div class="dbswatch" style="background:#E8547E" data-color="#E8547E"></div>
+        <div class="dbswatch" style="background:#3F9B6E" data-color="#3F9B6E"></div>
+      </div>
+      <canvas id="backCanvas" width="400" height="300"></canvas>
+      <div class="draw-back-actions">
+        <button id="backUndo" type="button">undo</button>
+        <button id="backClear" type="button">clear</button>
+        <button id="backSave" type="button">save my flower</button>
+      </div>
+      <p class="draw-back-hint" id="backHint">save it, then send it back to me however you like 💌</p>
+    </div>
   </div>
   <p class="credit-line" id="creditLine"></p>
 </div>
@@ -396,7 +436,7 @@ const PARCEL = {
     youtubeId: "wX_kaM6S9ZM",
     playlistId: "PLE43207F6E0F47654",
     index: 3,
-    credit: "PS — the song playing is the Overture from Mikhail Sokolovsky's \"The Miller-Wizard, Trickster and Match-Maker.\""
+    credit: "PS — the song playing is the Overture from Mikhail Sokolovsky's \"The <span class='credit-pop'>Miller</span>-Wizard, Trickster and Match-Maker.\""
   },
   items: [
     {
@@ -419,7 +459,7 @@ const PARCEL = {
     {
       type: 'photo',
       title: "It's you, again...",
-      caption: "at the museum, being silly",
+      caption: "looking good in mustard",
       src: "photo3.jpg"
     },
     {
@@ -663,7 +703,7 @@ styleTag.textContent = `@keyframes fall{to{ transform:translateY(100vh) rotate(3
 document.head.appendChild(styleTag);
 
 /* ---------- background music ---------- */
-document.getElementById('creditLine').textContent = PARCEL.bgMusic ? PARCEL.bgMusic.credit : '';
+document.getElementById('creditLine').innerHTML = PARCEL.bgMusic ? PARCEL.bgMusic.credit : '';
 let musicPlayer = null, musicPlaying = false;
 
 function startMusic(){
@@ -718,6 +758,68 @@ document.getElementById('replayBtn').addEventListener('click', ()=>{
   stageEl.classList.remove('hidden-stage');
   window.scrollTo({top:0, behavior:'smooth'});
 });
+
+/* ---------- "draw one back" mini canvas ---------- */
+(function(){
+  const canvas = document.getElementById('backCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  let color = '#7457B5';
+  let strokes = [];
+  let current = null;
+  let drawing = false;
+
+  function redraw(){
+    ctx.clearRect(0,0,W,H);
+    strokes.forEach(s => {
+      if(s.points.length < 2) return;
+      ctx.strokeStyle = s.color;
+      ctx.lineWidth = 7;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(s.points[0][0], s.points[0][1]);
+      for(let i=1;i<s.points.length;i++) ctx.lineTo(s.points[i][0], s.points[i][1]);
+      ctx.stroke();
+    });
+  }
+  function getPos(e){
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return [ (clientX - rect.left) * (W / rect.width), (clientY - rect.top) * (H / rect.height) ];
+  }
+  function start(e){ e.preventDefault(); drawing = true; current = {color, points:[getPos(e)]}; strokes.push(current); }
+  function move(e){ if(!drawing) return; e.preventDefault(); current.points.push(getPos(e)); redraw(); }
+  function stop(){ drawing = false; current = null; }
+
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', stop);
+  canvas.addEventListener('touchstart', start, {passive:false});
+  canvas.addEventListener('touchmove', move, {passive:false});
+  canvas.addEventListener('touchend', stop);
+
+  document.querySelectorAll('.dbswatch').forEach(sw=>{
+    sw.addEventListener('click', ()=>{
+      document.querySelectorAll('.dbswatch').forEach(s=>s.classList.remove('active'));
+      sw.classList.add('active');
+      color = sw.dataset.color;
+    });
+  });
+  document.getElementById('backUndo').addEventListener('click', ()=>{ strokes.pop(); redraw(); });
+  document.getElementById('backClear').addEventListener('click', ()=>{ strokes = []; redraw(); });
+  document.getElementById('backSave').addEventListener('click', ()=>{
+    if(strokes.length === 0){ alert('draw something first!'); return; }
+    const link = document.createElement('a');
+    link.download = 'a-flower-for-you.png';
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    document.getElementById('backHint').textContent = "saved! now text or airdrop it back to me 💌";
+  });
+})();
 </script>
 </body>
 </html>
